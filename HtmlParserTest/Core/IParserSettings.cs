@@ -1,5 +1,4 @@
-﻿
-namespace HtmlParserTest.Core
+﻿namespace HtmlParserTest.Core
 {
     interface IParserSettings
     {

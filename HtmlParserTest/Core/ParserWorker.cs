@@ -1,8 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using AngleSharp.Html.Parser;
+using System;
 
 namespace HtmlParserTest.Core
 {
@@ -13,6 +10,8 @@ namespace HtmlParserTest.Core
         HTMLLoader loader;
         bool isActive;
         #region Properties
+        public event Action<object, T> OnNewData;
+        public event Action<object> OnCompleted;
         public IParser<T> Parser
         {
             get
@@ -54,18 +53,30 @@ namespace HtmlParserTest.Core
         }
         public void Start()
         {
-
+            isActive = true;
+            Worker();
         }
         public void Abort()
         {
-
+            isActive = false;
         }
         private async void Worker()
         {
             for (int i = parserSettings.StartPoint; i < parserSettings.EndPoint; i++)
             {
-
+                if(!isActive)
+                {
+                    OnCompleted?.Invoke(this);
+                    return;
+                }
+                var source = await loader.GetSourceByPage(i);
+                var domParser = new HtmlParser();
+                var document = await domParser.ParseDocumentAsync(source);
+                var result = parser.Parse(document);
+                OnNewData?.Invoke(this, result);
             }
+            OnCompleted?.Invoke(this);
+            isActive = false;
         }
     }
 }
